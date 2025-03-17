@@ -72,9 +72,9 @@ typedef struct{
 
 tri t1 = (tri){
 	.v=(Vec3[3]){
-		(Vec3){0.f,0.5f,1.f},
-		(Vec3){-0.5f,-0.5f,5.f},
-		(Vec3){0.5f,-0.5f,1.f}
+		(Vec3){0.f,0.5f,2.f},
+		(Vec3){-0.5f,-0.5f,2.f},
+		(Vec3){0.5f,-0.5f,2.f}
 	},
 	.c=(Vec3[3]){
 		(Vec3){255.f,0.f,0.f},
@@ -197,8 +197,15 @@ int main(int argc, char* argv[]){
 		SDL_SetRenderDrawColor(rend,0,0,0,0);
 		SDL_RenderClear(rend);
 
-		render_triangle(&t1);
+		for(int i=0; i<3; i++){
+			float ry = t1.v[i].z-2.f;
+			float rx = t1.v[i].x;
+			t1.v[i].x = rx*cos(0.01)-ry*sin(0.01);
+			t1.v[i].z = rx*sin(0.01)+ry*cos(0.01)+2.f;
+		}
 
+		render_triangle(&t1);
+		
 		SDL_RenderPresent(rend);
 	}
 
