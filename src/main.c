@@ -7,8 +7,6 @@
 
 #undef main
 
-#define min(a,b) ((a)<(b)?(a):(b))
-#define max(a,b) ((a)>(b)?(a):(b))
 
 #define SW 300
 #define SH 300
