@@ -29,7 +29,8 @@ before including `triangleraster.h`. Note that it is mandatory to define either 
 
 # Requirements
 You will need `cmake` and any C compiler to compile this project. Please note that there might be mistakes made for the Windows
-port.
+port. If you desire to use SDL too, you will need to have the libary installed and link it properly. I use the system-wide installed
+version of SDL2, but for windows, you're gonna have to set it up yourself. *Sorry.*
 
 # Compiling and building
 ```
