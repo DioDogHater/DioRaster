@@ -42,6 +42,9 @@ cmake --build ./build
 ```
 And you're done! The executable will be `./build/raster`.
 
+# The cube example
+![A cube rotating in 3D, rendered in ASCII](https://github.com/DioDogHater/DioDogHater/blob/fde1610ef43855ae6795829926043d9244c518e5/triangleraster_cube.gif "The Cube.")
+
 # Credits
 Please credit me if you use this thing, if you want (I dont really give a shit), even though I'm pretty sure nobody will actually stumble upon this.\
 \
