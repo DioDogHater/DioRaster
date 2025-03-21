@@ -32,10 +32,10 @@ void set_pixel(Color color, int x, int y);
 
 // Resolution of the SDL Window (in pixels)
 #ifndef SW
-#define SW 150
+#define SW 125
 #endif
 #ifndef SH
-#define SH 150
+#define SH 125
 #endif
 
 // Window and renderer
@@ -246,6 +246,18 @@ void render_mesh(Mesh m){
 	Triangle* triangles = (Triangle*) malloc(sizeof(Triangle)*m.triangle_count);
 	for(int i = 0; i < m.triangle_count; i++){
 		triangles[i] = transform_triangle(m.triangles[i],m.pos,m.rot);
+	}
+	render_triangles(triangles,m.triangle_count);
+	free(triangles);
+}
+
+// Transform triangles and render mesh with shading
+void render_mesh_shaded(Mesh m, Vec3 light){
+	if(m.triangle_count == 0) return;
+	Triangle* triangles = (Triangle*) malloc(sizeof(Triangle)*m.triangle_count);
+	for(int i = 0; i < m.triangle_count; i++){
+		triangles[i] = transform_triangle(m.triangles[i],m.pos,m.rot);
+		shade_triangle(&triangles[i],light);
 	}
 	render_triangles(triangles,m.triangle_count);
 	free(triangles);

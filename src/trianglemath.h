@@ -43,6 +43,49 @@ Vec3 sub_Vec3(Vec3 a, Vec3 b){
 	};
 }
 
+float dot_product(Vec3 a, Vec3 b){
+	return a.x*b.x + a.y*b.y + a.z*b.z;
+}
+
+// Fast inverse square root from Quake
+float fast_invsqrt(float number){
+	long i;
+	float x2, y;
+	const float threehalfs = 1.5f;
+
+	x2 = number * 0.5f;
+	y = number;
+	i = *(long*)&y;
+	i = 0x5f3759df - (i >> 1);
+	y = *(float*)&i;
+	y = y * (threehalfs - (x2*y*y));
+	return y;
+}
+
+float inv_magnitude(Vec3 v){
+	return fast_invsqrt(v.x*v.x + v.y*v.y + v.z*v.z);
+}
+
+Vec3 normalize(Vec3 v){
+	float m = inv_magnitude(v);
+	if(m == 0) return v;
+	return (Vec3){v.x*m,v.y*m,v.z*m};
+}
+
+Vec3 cross_product(Vec3 a, Vec3 b){
+	return (Vec3){
+		a.y*b.z - a.z*b.y,
+		a.z*b.x - a.x*b.z,
+		a.x*b.y - a.y*b.x
+	};
+}
+
+Vec3 get_normal(Vec3 a, Vec3 b, Vec3 c){
+	Vec3 A = sub_Vec3(b,a);
+	Vec3 B = sub_Vec3(c,a);
+	return cross_product(A,B);
+}
+
 // ---------------- RENDERING UTILITY --------------------------------
 
 // Get the TriangleBounds of the triangle
@@ -101,6 +144,17 @@ Triangle project_triangle(Triangle t){
 		};
 	}
 	return t;
+}
+
+void shade_triangle(Triangle* t, Vec3 light){
+	Vec3 norm = normalize(get_normal(t->v[0],t->v[1],t->v[2]));
+	for(int i=0; i<3; i++){
+		Vec3 lightDir = normalize(sub_Vec3(t->v[i],light));
+		float diff = max(dot_product(norm,lightDir),0.f);
+		float intensity = (0.15f+diff*0.85f);
+		Vec3 diffuse = (Vec3){intensity*t->c[i].x,intensity*t->c[i].y,intensity*t->c[i].z};
+		t->c[i] = diffuse;
+	}
 }
 
 // ---------------- RASTERIZATION MATH -------------------------------
