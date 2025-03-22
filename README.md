@@ -52,6 +52,8 @@ mkdir build
 cmake -S . -B ./build
 cmake --build ./build
 ```
+Then after that first build, you can just use this line:\
+`cmake --build ./build`\
 And you're done! The executable will be `./build/raster`.
 
 # The cube example
