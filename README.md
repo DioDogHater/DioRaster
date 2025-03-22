@@ -35,7 +35,10 @@ To enable the full color mode, define: `TRIANGLE_RASTER_FULL_COLOR`. Otherwise, 
 
 # Requirements
 You will need the `cmake` build platform and any C compiler to compile this project. Please note that there might be mistakes made for the Windows
-port. If you desire to use SDL too, you will need to have the libary installed and link it properly. I use the system-wide installed
+port.\
+IF YOU DO NOT WANT TO USE SDL2 AT ALL, PLEASE REMOVE THE FOLLOWING LINE IN `CMakeLists.txt`:\
+`target_link_libaries(raster SDL2)`\
+If you desire to use SDL too, you will need to have the libary installed and link it properly. I use the system-wide installed
 version of SDL2, but for windows, you're gonna have to set it up yourself. *Sorry.*
 
 # Using Wavefront (.obj) meshes
