@@ -157,12 +157,16 @@ void clear_screen(){
 // Just do nothing (no events to poll or handle)
 void handle_events(){}
 
+#ifndef TRIANGLE_RASTER_SLEEPMS
+#define TRIANGLE_RASTER_SLEEPMS 2
+#endif
+
 // Update the screen
 void update_screen(){
 	for(int i = 0; i < SH; i++){
 		printf("%s\n",screen_buffer[i]);
 	}
-	sleepms(2);
+	sleepms(TRIANGLE_RASTER_SLEEPMS);
 }
 
 // Set a pixel to a specific color

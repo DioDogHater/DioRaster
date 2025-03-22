@@ -23,9 +23,9 @@ before including `triangleraster.h`.
 - You can decide wether triangles are rendered when they are winded in counter-clockwise or clockwise order defining either:\
 `TRIANGLE_RASTER_CCW` or `TRIANGLE_RASTER_CW`\
 before including `triangleraster.h`. Note that it is mandatory to define either one before including the header.
-- The `Triangle` struct type has two members:\
-`v` -> It is simply the position vector array. The engine uses Z+ view, so please take that into consideration.\
-`c` -> It is the color vector array. It just contains the colors to interpolate between vertices during rasterization.
+- You can decide in "*Terminal*" rendering mode how many milliseconds to wait before rendering the next frame by defining:\
+`TRIANGLE_RASTER_SLEEPMS` to the amount of ms to wait.\
+Default is 2 ms.
 
 # Requirements
 You will need `cmake` and any C compiler to compile this project. Please note that there might be mistakes made for the Windows

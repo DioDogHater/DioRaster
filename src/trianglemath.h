@@ -149,7 +149,7 @@ Triangle project_triangle(Triangle t){
 void shade_triangle(Triangle* t, Vec3 light){
 	Vec3 norm = normalize(get_normal(t->v[0],t->v[1],t->v[2]));
 	for(int i=0; i<3; i++){
-		Vec3 lightDir = normalize(sub_Vec3(t->v[i],light));
+		Vec3 lightDir = normalize(sub_Vec3(light,t->v[i]));
 		float diff = max(dot_product(norm,lightDir),0.f);
 		float intensity = (0.15f+diff*0.85f);
 		Vec3 diffuse = (Vec3){intensity*t->c[i].x,intensity*t->c[i].y,intensity*t->c[i].z};

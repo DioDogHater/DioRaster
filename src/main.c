@@ -4,85 +4,42 @@
 #include <math.h>
 
 #define TRIANGLE_RASTER_TERMINAL
-#define TRIANGLE_RASTER_CCW
+#define TRIANGLE_RASTER_CW
+#define SW 150
+#define SH 75
+#define TRIANGLE_RASTER_SLEEPMS 0
 #include "triangleraster.h"
 
-Mesh test_mesh = (Mesh){
-	(Triangle[]){
-		// Front
-		(Triangle){
-			.v={(Vec3){-0.5f,0.5f,-0.5f},(Vec3){-0.5f,-0.5f,-0.5f},(Vec3){0.5f,-0.5f,-0.5f}},
-			.c={(Vec3){255.f,255.f,255.f},(Vec3){255.f,255.f,255.f},(Vec3){255.f,255.f,255.f}}
-		},
-		(Triangle){
-			.v={(Vec3){-0.5f,0.5f,-0.5f},(Vec3){0.5f,-0.5f,-0.5f},(Vec3){0.5f,0.5f,-0.5f}},
-			.c={(Vec3){255.f,255.f,255.f},(Vec3){255.f,255.f,255.f},(Vec3){255.f,255.f,255.f}}
-		},
-		// Back
-		(Triangle){
-			.v={(Vec3){0.5f,0.5f,0.5f},(Vec3){0.5f,-0.5f,0.5f},(Vec3){-0.5f,-0.5f,0.5f}},
-			.c={(Vec3){255.f,255.f,255.f},(Vec3){255.f,255.f,255.f},(Vec3){255.f,255.f,255.f}}
-		},
-		(Triangle){
-			.v={(Vec3){0.5f,0.5f,0.5f},(Vec3){-0.5f,-0.5f,0.5f},(Vec3){-0.5f,0.5f,0.5f}},
-			.c={(Vec3){255.f,255.f,255.f},(Vec3){255.f,255.f,255.f},(Vec3){255.f,255.f,255.f}}
-		},
-		// Left
-		(Triangle){
-			.v={(Vec3){-0.5f,0.5f,0.5f},(Vec3){-0.5f,-0.5f,0.5f},(Vec3){-0.5f,-0.5f,-0.5f}},
-			.c={(Vec3){255.f,255.f,255.f},(Vec3){255.f,255.f,255.f},(Vec3){255.f,255.f,255.f}}
-		},
-		(Triangle){
-			.v={(Vec3){-0.5f,0.5f,0.5f},(Vec3){-0.5f,-0.5f,-0.5f},(Vec3){-0.5f,0.5f,-0.5f}},
-			.c={(Vec3){255.f,255.f,255.f},(Vec3){255.f,255.f,255.f},(Vec3){255.f,255.f,255.f}}
-		},
-		// Right
-		(Triangle){
-			.v={(Vec3){0.5f,0.5f,-0.5f},(Vec3){0.5f,-0.5f,-0.5f},(Vec3){0.5f,-0.5f,0.5f}},
-			.c={(Vec3){255.f,255.f,255.f},(Vec3){255.f,255.f,255.f},(Vec3){255.f,255.f,255.f}}
-		},
-		(Triangle){
-			.v={(Vec3){0.5f,0.5f,-0.5f},(Vec3){0.5f,-0.5f,0.5f},(Vec3){0.5f,0.5f,0.5f}},
-			.c={(Vec3){255.f,255.f,255.f},(Vec3){255.f,255.f,255.f},(Vec3){255.f,255.f,255.f}}
-		},
-		// Top
-		(Triangle){
-			.v={(Vec3){-0.5f,0.5f,0.5f},(Vec3){-0.5f,0.5f,-0.5f},(Vec3){0.5f,0.5f,-0.5f}},
-			.c={(Vec3){255.f,255.f,255.f},(Vec3){255.f,255.f,255.f},(Vec3){255.f,255.f,255.f}}
-		},
-		(Triangle){
-			.v={(Vec3){-0.5f,0.5f,0.5f},(Vec3){0.5f,0.5f,-0.5f},(Vec3){0.5f,0.5f,0.5f}},
-			.c={(Vec3){255.f,255.f,255.f},(Vec3){255.f,255.f,255.f},(Vec3){255.f,255.f,255.f}}
-		},
-		// Bottom
-		(Triangle){
-			.v={(Vec3){0.5f,-0.5f,0.5f},(Vec3){0.5f,-0.5f,-0.5f},(Vec3){-0.5f,-0.5f,-0.5f}},
-			.c={(Vec3){255.f,255.f,255.f},(Vec3){255.f,255.f,255.f},(Vec3){255.f,255.f,255.f}}
-		},
-		(Triangle){
-			.v={(Vec3){0.5f,-0.5f,0.5f},(Vec3){-0.5f,-0.5f,-0.5f},(Vec3){-0.5f,-0.5f,0.5f}},
-			.c={(Vec3){255.f,255.f,255.f},(Vec3){255.f,255.f,255.f},(Vec3){255.f,255.f,255.f}}
-		}
-	},
-	12,
-	(Vec3){0.f,0.f,3.f},
-	(Vec3){0.f,0.f,0.f}
-};
+#include "objparser.h"
 
 int main(int argc, char* argv[]){
 	if(!init()) return 1;
+
+	OBJ_Data obj_data;
+	if(!OBJ_parse(&obj_data,"car.obj")) return 1;
+
+	Mesh test_mesh = OBJ_data_to_mesh(&obj_data);
+	test_mesh.pos = (Vec3){0.f,0.f,3.5f};
+
+	OBJ_free_data(&obj_data);
+	printf("Parsed mesh!\n");
 	
+	float frames = 0.f;
 	while(true){
 		handle_events();
 
 		clear_screen();
 
 		render_mesh_shaded(test_mesh,(Vec3){50.f,50.f,-50.f});
-		test_mesh.rot.y += 0.005f;
-		test_mesh.rot.x += 0.0025f;
+		//render_mesh(test_mesh);
+		test_mesh.rot.y += 0.02f;
+		test_mesh.rot.x = 0.5f*sin(0.75f*frames);
 
 		update_screen();
+		frames += 0.01f;
 	}
+
+	OBJ_free_mesh(&test_mesh);
 
 	quit_everything();
 }
