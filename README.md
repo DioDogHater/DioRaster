@@ -52,13 +52,13 @@ cmake --build ./build
 And you're done! The executable will be `./build/raster`.
 
 # The cube example
-![A cube rotating in 3D, rendered in ASCII](https://github.com/DioDogHater/DioDogHater/blob/fde1610ef43855ae6795829926043d9244c518e5/triangleraster_cube.gif "The Cube.")
-Then... Behold: Lighting!
+![A cube rotating in 3D, rendered in ASCII](https://github.com/DioDogHater/DioDogHater/blob/fde1610ef43855ae6795829926043d9244c518e5/triangleraster_cube.gif "The Cube.")\
+Then... Behold: Lighting!\
 ![A shaded cube rotating in 3D, rendered in ASCII](https://github.com/DioDogHater/DioDogHater/blob/ebe9eb04076de24d05cd04276cd687b588c0048e/triangleraster_shadedcube.gif "The Shaded Cube.")
 
 # The car example
 Now this is the coolest thing I've been able to do so far!\
-Golden scar? No, but golden car. Vroom vroom.
+Golden scar? No, but golden car. Vroom vroom.\
 ![A car rotating in 3D, rendered using hashtags in a gold color](https://github.com/DioDogHater/DioDogHater/blob/eb32255b533146afe500c420d3f5e5576db2fa4a/triangleraster_car.gif "The Golden Car.")
 
 # Credits
