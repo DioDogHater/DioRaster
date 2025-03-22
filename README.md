@@ -54,6 +54,7 @@ cmake --build ./build
 ```
 Then after that first build, you can just use this line:\
 `cmake --build ./build`\
+To compile everytime you want to test out your code!\
 And you're done! The executable will be `./build/raster`.
 
 # The cube example
