@@ -1,6 +1,9 @@
 #ifndef OBJ_PARSER_H
 #define OBJ_PARSER_H
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <ctype.h>
 
 // This header file is a .obj (Wavefront format) file parser
@@ -158,21 +161,21 @@ void OBJ_free_data(OBJ_Data* data){
 
 // ---------------- TRANSFORM OBJ_DATA INTO MESH -----------------------
 
-Mesh OBJ_data_to_mesh(OBJ_Data* data){
+Mesh OBJ_data_to_mesh(OBJ_Data* data, Color default_color){
 	if(data->face_count < 1 && data->vertex_count < 1) // If the model is "empty"
 		return (Mesh){NULL,0,(Vec3){0.f,0.f,0.f},(Vec3){0.f,0.f,0.f}};
 	// Allocate resources necessary to load model and initialize pos and rot
 	Mesh m;
 	m.triangles = (Triangle*)malloc(sizeof(Triangle)*data->face_count);
 	m.triangle_count = data->face_count;
-	printf("Triangle count: %d\n",m.triangle_count);
+	//printf("Triangle count: %d\n",m.triangle_count);
 	m.pos = (Vec3){0.f,0.f,0.f};
 	m.rot = (Vec3){0.f,0.f,0.f};
 
 	// Now parse through all faces and add them to the mesh
 	for(int i = 0; i < data->face_count; i++){
 		Triangle tri;
-		printf("Triangle %d:\n",i);
+		//printf("Triangle %d:\n",i);
 		for(int j = 0; j < 3; j++){
 			// Check if the vertex doesn't exist
 			// If it doesn't exist, just throw an error and return empty mesh
@@ -184,7 +187,8 @@ Mesh OBJ_data_to_mesh(OBJ_Data* data){
 				return m;
 			}
 			tri.v[j] = data->vertices[data->faces[i].v[j]-1];
-			tri.c[j] = (Vec3){255.f,255.f,255.f}; // For now, the model is entirely white
+			// Give every vertex the same color (Might change that later ;) )
+			tri.c[j] = (Vec3){(float)default_color.r,(float)default_color.g,(float)default_color.b};
 			printf("%f, %f, %f\n",tri.v[j].x,tri.v[j].y,tri.v[j].z);
 		}
 		m.triangles[i] = tri;

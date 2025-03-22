@@ -1,3 +1,5 @@
+# This is an example of a 3D Wavefront mesh you can import.
+# As you can see, all lines in this file must start with either 'v' or 'f', meaning vertices and faces.
 v -0.432161 0.102944 1.313436
 v -0.432161 0.167308 1.150247
 v -0.432161 0.006404 1.220127

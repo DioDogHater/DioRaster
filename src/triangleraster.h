@@ -38,6 +38,9 @@ void set_pixel(Color color, int x, int y);
 #define SH 125
 #endif
 
+// Create the depth buffer
+float depth_buffer[SH][SW];
+
 // Window and renderer
 SDL_Window* win = NULL;
 SDL_Renderer* rend = NULL;
@@ -74,6 +77,10 @@ void quit_everything(){
 void clear_screen(){
 	SDL_SetRenderDrawColor(rend,0,0,0,255);
 	SDL_RenderClear(rend);
+	for(int i = 0; i < SH; i++){
+		for(int j = 0; j < SW; j++)
+			depth_buffer[i][j] = 100.f;
+	}
 }
 
 // Handle events in case user presses X
@@ -119,14 +126,21 @@ void set_pixel(Color color, int x, int y){
 #endif
 
 // Screen buffer for characters to be rendered to the screen
-char screen_buffer[SH][SW+1];
+Color color_buffer[SH][SW];
 
+// Create the depth buffer
+float depth_buffer[SH][SW];
+
+#ifndef TRIANGLE_RASTER_FULL_COLOR
 const char grayscale[] = "`.-':_,^=;><+!rc*/z?sLTv)J7(|Fi{C}fI31tlu[neoZ5Yxjya]2ESwqkP6h9d4VpOGbUAKXHm8RD#$Bg0MNWQ%&@";
 float grayscale_len = 0.f;
+#endif
 
 // Initialize the screen buffer
 bool init(){
+	#ifndef TRIANGLE_RASTER_FULL_COLOR
 	grayscale_len = (float)strlen(grayscale);
+	#endif
 	return true;
 }
 
@@ -136,20 +150,22 @@ void quit_everything(){
 }
 
 // Clear the screen
-void clear_screen_buffer(){
+void clear_color_buffer(){
 	for(int i = 0; i < SH; i++){
-		memset(screen_buffer[i],' ',SW);
-		screen_buffer[i][SW] = '\0';
+		for(int j = 0; j < SW; j++){
+			color_buffer[i][j] = (Color){0,0,0};
+			depth_buffer[i][j] = 100.f;
+		}
 	}
 }
 #if defined(_WIN32)
 void clear_screen(){
-	clear_screen_buffer();
+	clear_color_buffer();
 	system("cls");
 }
 #elif defined(__linux__)
 void clear_screen(){
-	clear_screen_buffer();
+	clear_color_buffer();
 	printf("\e[2J\e[H");
 }
 #endif
@@ -164,18 +180,32 @@ void handle_events(){}
 // Update the screen
 void update_screen(){
 	for(int i = 0; i < SH; i++){
-		printf("%s\n",screen_buffer[i]);
+		for(int j = 0; j < SW; j++){
+			if(color_buffer[i][j].r != 0 || color_buffer[i][j].g != 0 || color_buffer[i][j].b != 0){
+				#if defined(TRIANGLE_RASTER_FULL_COLOR)
+				printf("\033[38;2;%d;%d;%dm#",color_buffer[i][j].r,color_buffer[i][j].g,color_buffer[i][j].b);
+				#else
+				float brightness = (float)color_buffer[i][j].r*0.299f+(float)color_buffer[i][j].g*0.587f+(float)color_buffer[i][j].b*0.114f;
+				int grayscale_index = (int)round(brightness/300.f*grayscale_len);
+				putchar(grayscale[grayscale_index]);
+				#endif
+			}else{
+				putchar(' ');
+			}
+		}
+		putchar('\n');
 	}
+	#if defined(TRIANGLE_RASTER_FULL_COLOR)
+	printf("\033[0m");
+	#endif
 	sleepms(TRIANGLE_RASTER_SLEEPMS);
 }
 
-// Set a pixel to a specific color
+// Set pixel to specified color
 void set_pixel(Color color, int x, int y){
 	if(x < 0 || x >= SW || y < 0 || y >= SH)
 		return;
-	float brightness = (float)color.r*0.299f+(float)color.g*0.587f+(float)color.b*0.114f;
-	int grayscale_index = (int)round(brightness/600.f*grayscale_len);
-	screen_buffer[y][x] = grayscale[grayscale_index];
+	color_buffer[y][x] = color;
 }
 
 
@@ -206,7 +236,6 @@ void render_triangles(Triangle* triangle_array, int triangle_count){
 		global_bounds.ymin = min(global_bounds.ymin,bounds[i].ymin);
 		global_bounds.ymax = max(global_bounds.ymax,bounds[i].ymax);
 	}
-	//printf("bounds: %d, %d, %d, %d\n",global_bounds.xmin,global_bounds.xmax,global_bounds.ymin,global_bounds.ymax);
 	
 	// Loop through all triangles' bounds and check for each pixel
 	for(int y = global_bounds.ymin; y < global_bounds.ymax; y++){
@@ -214,7 +243,7 @@ void render_triangles(Triangle* triangle_array, int triangle_count){
 			// Current pixel's color
 			Color fragment_color = (Color){0,0,0};
 			// Depth of the closest triangle
-			float closest_depth = 100.f;
+			float closest_depth = depth_buffer[y][x];
 			for(int i = 0; i < triangle_count; i++){
 				// Current triangle
 				Triangle tri = triangles[i];
@@ -233,10 +262,9 @@ void render_triangles(Triangle* triangle_array, int triangle_count){
 				}
 			}
 			// If the fragment's color isnt black, render the pixel
-			if(fragment_color.r != 0 || fragment_color.g != 0 || fragment_color.b != 0){
+			if(fragment_color.r != 0 || fragment_color.g != 0 || fragment_color.b != 0)
 				set_pixel(fragment_color,x,y);
-				//printf("color: %d, %d, %d\n",fragment_color.r,fragment_color.g,fragment_color.b);
-			}
+			depth_buffer[y][x] = closest_depth;
 		}
 	}
 	// Free resources
