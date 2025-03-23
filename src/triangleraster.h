@@ -109,13 +109,8 @@ void set_pixel(Color color, int x, int y){
 // Will render the triangles on the terminal using ASCII characters
 
 // Sleeping to wait for next frame
-#if defined(_WIN32)
-#include <windows.h>
-#define sleepms(ms) Sleep((ms))
-#elif defined(__linux__)
 #include <unistd.h>
 #define sleepms(ms) usleep((ms)*1000)
-#endif
 
 // Resolution
 #ifndef SW
@@ -136,21 +131,10 @@ const char grayscale[] = "`.-':_,^=;><+!rc*/z?sLTv)J7(|Fi{C}fI31tlu[neoZ5Yxjya]2
 float grayscale_len = 0.f;
 #endif
 
-#ifdef _WIN32
-// This buffer is used when we use the printf() and putchar() functions
-// to avoid unecessary slow-ness from the Windows terminals
-char print_buffer[65536];
-#endif
-
 // Initialize the screen buffer
 bool init(){
 	#ifndef TRIANGLE_RASTER_FULL_COLOR
 	grayscale_len = (float)strlen(grayscale);
-	#endif
-	// For windows, I have to make the printf function go into a buffer
-	// because the windows terminals are way slower than linux ones
-	#ifdef _WIN32
-	setvbuf(stdout,print_buffer,_IOFBF,65536);
 	#endif
 	return true;
 }
@@ -169,17 +153,10 @@ void clear_color_buffer(){
 		}
 	}
 }
-#if defined(_WIN32)
-void clear_screen(){
-	clear_color_buffer();
-	system("cls");
-}
-#elif defined(__linux__)
 void clear_screen(){
 	clear_color_buffer();
 	printf("\e[2J\e[H");
 }
-#endif
 
 // Just do nothing (no events to poll or handle)
 void handle_events(){}

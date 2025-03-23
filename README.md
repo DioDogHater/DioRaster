@@ -1,6 +1,5 @@
 # DioDogHater's multifunction rasterizer
-This is a very barebones (and probably unoptimized) attempt to make a rasterizer and 3D engine using basic C.
-Now, this project does probably support Windows, but I am unsure, so please be sure to adapt the code if not.
+This is a very barebones (and probably unoptimized) attempt to make a rasterizer and 3D engine using plain C, in the terminal.
 This project's sole purpose is to be able to render 3D primitives in the terminal, giving you the hacker stereotype look.
 Well, I guess you can just test it out for yourself and find out what you can do!
 
@@ -34,15 +33,15 @@ To enable the full color mode, define: `TRIANGLE_RASTER_FULL_COLOR`. Otherwise, 
 `triangleraster.h`.
 
 # Requirements
-You will need the `cmake` build platform and any C compiler to compile this project. Please note that there might be mistakes made for the Windows
-port.\
+You will need the `cmake` build platform and any C compiler to compile this project.\
+This project is made to be used strictly with linux, but feel free to add your own support.\
 IF YOU DO NOT WANT TO USE SDL2 AT ALL, PLEASE REMOVE THE FOLLOWING LINE IN `CMakeLists.txt`:\
 `target_link_libaries(raster SDL2)`\
 If you desire to use SDL too, you will need to have the libary installed and link it properly. I use the system-wide installed
-version of SDL2, but for windows, you're gonna have to set it up yourself. *Sorry.*
+version of SDL2, but for other installations of SDL2, you need to set it up yourself in `CMakeLists.txt`.
 
 # Using Wavefront (.obj) meshes
-If you want to use Wavefront meshes, please note that for now, materials and textures are not supported. Also, since the .obj file parser is still barebones for now, you will need to remove every line in the .obj file that does not start with either *v* or *f*. All other lines are useless and will probably make my parser fail because, like I said, it's very barebones right now. Also, please triangulate your mesh's faces before using them (transform the quads in the mesh to triangles). For now, a loaded model can only have a single color, but I might add more features later on. note that between the *v* and *f* lines, there will be a single or 3 lines containing *s off*, please remove those. For further detail, save your mesh with Z+ as the forward axis, no edges, no materials and remove all unecessary elements in the scene such as cameras, lights, etc.
+If you want to use Wavefront meshes, please note that for now, materials and textures are not supported. Also, since the .obj file parser is still barebones for now, you will need to remove every line in the .obj file that does not start with either *v* or *f*. All other lines are useless and will probably make my parser fail because, like I said, it's very barebones right now. Also, please triangulate your mesh's faces before using them (transform the quads in the mesh to triangles). For now, a loaded model can only have a single color, but I might add more features later on. note that between the *v* and *f* lines, there will be a single or 3 lines with other stuff, please remove those. For further detail, save your mesh with Z+ as the forward axis, no edges, no materials and remove all unecessary elements in the scene such as cameras, lights, etc.
 
 # Compiling and building
 ```
