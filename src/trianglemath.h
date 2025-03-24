@@ -1,3 +1,4 @@
+
 #ifndef TRIANGLE_MATH_H
 #define TRIANGLE_MATH_H
 
@@ -47,6 +48,7 @@ float dot_product(Vec3 a, Vec3 b){
 	return a.x*b.x + a.y*b.y + a.z*b.z;
 }
 
+#if defined(TRIANGLE_RASTER_FAST_INVSQRT)
 // Fast inverse square root from Quake
 float fast_invsqrt(float number){
 	long i;
@@ -61,10 +63,14 @@ float fast_invsqrt(float number){
 	y = y * (threehalfs - (x2*y*y));
 	return y;
 }
-
 float inv_magnitude(Vec3 v){
 	return fast_invsqrt(v.x*v.x + v.y*v.y + v.z*v.z);
 }
+#else
+float inv_magnitude(Vec3 v){
+	return 1.f/(float)sqrtf(v.x*v.x + v.y*v.y + v.z*v.z);
+}
+#endif
 
 Vec3 normalize(Vec3 v){
 	float m = inv_magnitude(v);
