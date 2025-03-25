@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <math.h>
+#include <pthread.h>
 
 // Boolean values
 #define bool _Bool
@@ -208,35 +209,32 @@ void set_pixel(Color color, int x, int y){
 // Custom made math library to fit this rasterizer's needs
 #include "trianglemath.h"
 
-// Render triangles
-void render_triangles(Triangle* triangle_array, int triangle_count){
-	// Copy of triangles given to transform for projection
-	Triangle* triangles = (Triangle*) malloc(sizeof(Triangle)*triangle_count);
-	// Get bounds and store them
-	struct TriangleBounds* bounds = (struct TriangleBounds*) malloc(sizeof(struct TriangleBounds)*triangle_count);
-	struct TriangleBounds global_bounds;
-	for(int i = 0; i < triangle_count; i++) {
-		triangles[i] = project_triangle(triangle_array[i]);
-		bounds[i] = get_triangle_bounds(triangles[i]);
-		if(i == 0) { global_bounds = bounds[i]; continue; }
-		global_bounds.xmin = min(global_bounds.xmin,bounds[i].xmin);
-		global_bounds.xmax = max(global_bounds.xmax,bounds[i].xmax);
-		global_bounds.ymin = min(global_bounds.ymin,bounds[i].ymin);
-		global_bounds.ymax = max(global_bounds.ymax,bounds[i].ymax);
-	}
-	
-	// Loop through all triangles' bounds and check for each pixel
-	for(int y = global_bounds.ymin; y < global_bounds.ymax; y++){
-		for(int x = global_bounds.xmin; x < global_bounds.xmax; x++){
+// Bounds allocated to be passed as argument in threads
+struct TriangleBounds* thread_bounds=NULL;
+Triangle* global_render_triangles;
+struct TriangleBounds* global_render_bounds=NULL;
+int global_render_triangle_count;
+
+void* thread_render_area(void* vargs){
+	//pthread_detach(pthread_self());
+
+	// Get the bounds passed as the argument
+	struct TriangleBounds bounds;
+	memcpy(&bounds,vargs,sizeof(struct TriangleBounds));
+
+	// Loop through each pixel to check if inside a triangle
+	for(int y = bounds.ymin; y < bounds.ymax; y++){
+		for(int x = bounds.xmin; x < bounds.xmax; x++){
 			// Current pixel's color
 			Color fragment_color = (Color){0,0,0};
 			// Depth of the closest triangle
 			float closest_depth = depth_buffer[y][x];
-			for(int i = 0; i < triangle_count; i++){
+			// Loop through all triangles
+			for(int i = 0; i < global_render_triangle_count; i++){
 				// Current triangle
-				Triangle tri = triangles[i];
+				Triangle tri = global_render_triangles[i];
 				// Check if in bounds of the current triangle
-				if(x < bounds[i].xmin || x > bounds[i].xmax || y < bounds[i].ymin || y > bounds[i].ymax) continue;
+				if(x < global_render_bounds[i].xmin || x > global_render_bounds[i].xmax || y < global_render_bounds[i].ymin || y > global_render_bounds[i].ymax) continue;
 				// Check if pixel is inside triangle
 				Vec3 p = barycentric(tri.v[0],tri.v[1],tri.v[2],px_to_screen_space(x,y));
 				// If yes, fill the pixel with the interpolated color
@@ -255,9 +253,71 @@ void render_triangles(Triangle* triangle_array, int triangle_count){
 			depth_buffer[y][x] = closest_depth;
 		}
 	}
+
+	pthread_exit(NULL);
+}
+
+// Render triangles
+void render_triangles(Triangle* triangle_array, int triangle_count){
+	// Set the global variable holding the triangle count
+	global_render_triangle_count = triangle_count;
+	
+	// Copy of triangles given to transform for projection
+	global_render_triangles = (Triangle*) malloc(sizeof(Triangle)*triangle_count);
+	
+	// Get bounds and store them
+	global_render_bounds = (struct TriangleBounds*) malloc(sizeof(struct TriangleBounds)*triangle_count);
+
+	// The "global" bounds (Instead of checking the whole screen, we check only the affected part of the screen)
+	struct TriangleBounds global_bounds;
+	for(int i = 0; i < triangle_count; i++) {
+		global_render_triangles[i] = project_triangle(triangle_array[i]);
+		global_render_bounds[i] = get_triangle_bounds(global_render_triangles[i]);
+		if(i == 0) { global_bounds = global_render_bounds[i]; continue; }
+		global_bounds.xmin = min(global_bounds.xmin,global_render_bounds[i].xmin);
+		global_bounds.xmax = max(global_bounds.xmax,global_render_bounds[i].xmax);
+		global_bounds.ymin = min(global_bounds.ymin,global_render_bounds[i].ymin);
+		global_bounds.ymax = max(global_bounds.ymax,global_render_bounds[i].ymax);
+	}
+	
+	if(thread_bounds == NULL) thread_bounds = (struct TriangleBounds*) malloc(sizeof(struct TriangleBounds) * 4);
+
+	// The 4 thread's ids
+	pthread_t upper_left, upper_right, lower_left, lower_right;
+
+	// Separates the global bounds into 4 zones, represented as shown here
+	// #### | ####
+	// #### | ####
+	// -----------
+	// #### | ####
+	// #### | ####
+	// Each zone has a thread assigned to it, holding necessary info
+
+	// upper left zone
+	thread_bounds[0] = (struct TriangleBounds){global_bounds.xmin,(global_bounds.xmax+global_bounds.xmin)/2,global_bounds.ymin,(global_bounds.ymax+global_bounds.ymin)/2};
+	pthread_create(&upper_left,NULL,&thread_render_area,(void*)&thread_bounds[0]);
+
+	// upper right zone
+	thread_bounds[1] = (struct TriangleBounds){(global_bounds.xmax+global_bounds.xmin)/2,global_bounds.xmax,global_bounds.ymin,(global_bounds.ymax+global_bounds.ymin)/2};
+	pthread_create(&upper_right,NULL,&thread_render_area,(void*)&thread_bounds[1]);
+
+	// Lower left zone
+	thread_bounds[2] = (struct TriangleBounds){global_bounds.xmin,(global_bounds.xmax+global_bounds.xmin)/2,(global_bounds.ymax+global_bounds.ymin)/2,global_bounds.ymax};
+	pthread_create(&lower_left,NULL,&thread_render_area,(void*)&thread_bounds[2]);
+
+	// Lower right zone
+	thread_bounds[3] = (struct TriangleBounds){(global_bounds.xmax+global_bounds.xmin)/2,global_bounds.xmax,(global_bounds.ymax+global_bounds.ymin)/2,global_bounds.ymax};
+	pthread_create(&lower_right,NULL,&thread_render_area,(void*)&thread_bounds[3]);
+
+	// Wait for all threads to end
+	pthread_join(upper_left,NULL);
+	pthread_join(upper_right,NULL);
+	pthread_join(lower_left,NULL);
+	pthread_join(lower_right,NULL);
+
 	// Free resources
-	free(triangles);
-	free(bounds);
+	free(global_render_triangles);
+	free(global_render_bounds);
 }
 
 // Transform triangles and render mesh

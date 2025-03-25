@@ -72,6 +72,10 @@ float inv_magnitude(Vec3 v){
 }
 #endif
 
+float magnitude(Vec3 v){
+	return 1.f/inv_magnitude(v);
+}
+
 Vec3 normalize(Vec3 v){
 	float m = inv_magnitude(v);
 	if(m == 0) return v;

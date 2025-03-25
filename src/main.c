@@ -8,11 +8,13 @@
 #define TRIANGLE_RASTER_CW
 
 // Window dimensions
+#ifndef TRIANGLE_RASTER_SDL
 #define SW 125
 #define SH 62
+#endif
 
 // Rendering parameters
-#define TRIANGLE_RASTER_SLEEPMS 2
+#define TRIANGLE_RASTER_SLEEPMS 0
 #define TRIANGLE_RASTER_FULL_COLOR
 #define TRIANGLE_RASTER_AMBIENT 0.5f
 #define TRIANGLE_RASTER_DIFFUSE 0.5f
@@ -23,17 +25,26 @@
 // The Wavefront (.obj) parsing library
 #include "objparser.h"
 
-int main(int argc, char* argv[]){
+Mesh load_mesh(char* path, Color c){
 	// Parse the scene
 	OBJ_Data obj_data;
-	if(!OBJ_parse(&obj_data,"car.obj")) return 1;
+	if(!OBJ_parse(&obj_data,path)) exit(1);
 
 	// Load mesh from the scene
-	Mesh test_mesh = OBJ_data_to_mesh(&obj_data,(Color){255,150,25});
-	test_mesh.pos = (Vec3){0.f,0.f,3.75f};
+	Mesh result = OBJ_data_to_mesh(&obj_data,c);
 
 	// Free the scene
 	OBJ_free_data(&obj_data);
+	return result;
+}
+
+int main(int argc, char* argv[]){
+	// Load the car mesh
+	Mesh car_mesh = load_mesh("car.obj",(Color){255,125,50});
+	car_mesh.pos = (Vec3){-1.f,0.f,6.25f};
+	// Load the suzanne mesh
+	Mesh suzanne_mesh = load_mesh("suzanne.obj",(Color){255,255,255});
+	suzanne_mesh.pos = (Vec3){1.f,0.f,4.25f};
 
 	// Initialize the rasterization libary
 	if(!init()) return 1;
@@ -46,13 +57,17 @@ int main(int argc, char* argv[]){
 
 		clear_screen();
 
-		// Render the mesh with shading
-		// The light source is at (10,10,0)
-		render_mesh_shaded(test_mesh,(Vec3){10.f,10.f,0.f});
+		// Render the car and suzanne with shading
+		render_mesh_shaded(suzanne_mesh,(Vec3){10.f,10.f,0.f});
+		render_mesh_shaded(car_mesh,(Vec3){10.f,10.f,0.f});
 
 		// Rotate the car
-		test_mesh.rot.y += 0.02f;
-		test_mesh.rot.x = 0.5f*sin(0.75f*frames);
+		car_mesh.rot.y += 0.02f;
+		car_mesh.rot.x = 0.5f*sin(0.75f*frames);
+
+		// Rotate the suzanne mesh
+		suzanne_mesh.rot.x += 0.03f;
+		suzanne_mesh.rot.z += 0.02f;
 
 		// Update the screen
 		update_screen();
@@ -60,7 +75,8 @@ int main(int argc, char* argv[]){
 	}
 
 	// Free the mesh we loaded at the start
-	OBJ_free_mesh(&test_mesh);
+	OBJ_free_mesh(&car_mesh);
+	OBJ_free_mesh(&suzanne_mesh);
 
 	quit_everything();
 }

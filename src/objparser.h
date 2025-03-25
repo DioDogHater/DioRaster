@@ -35,6 +35,12 @@ void OBJ_pushback_face(OBJ_Data* data, OBJ_Face face){
 	data->faces[data->face_count-1]=face;
 }
 
+#ifdef OBJ_PARSER_DEBUG
+#define OBJ_printf(c,...) printf((c),##__VA_ARGS__);
+#else
+#define OBJ_printf(c,...)
+#endif
+
 // Global variables
 size_t obj_pos;
 size_t obj_size;
@@ -47,7 +53,7 @@ bool OBJ_parse(OBJ_Data* data, char* path){
 	// Open the file in binary read mode
 	FILE* fptr = fopen(path,"rb");
 	if(fptr == NULL){
-		perror("Failed to open .obj file!\n");
+		perror("Failed to open .obj file! ");
 		return false;
 	}
 	// Determine the entire size of the file to allocate a buffer
@@ -61,13 +67,15 @@ bool OBJ_parse(OBJ_Data* data, char* path){
 		return false;
 	}
 	// Read the contents of the file
-	fread(obj_buffer,1,obj_size,fptr);
+	if(fread(obj_buffer,1,obj_size,fptr) < obj_size){
+		printf("Failed to read entirety of file: expected %lu to be bytes read!\n",obj_size);
+	}
 	// Parse through the file
 	obj_success = true;
 	obj_pos = 0;
 	*data = (OBJ_Data){NULL,0,NULL,0};
 	while(OBJ_parse_line(data,obj_buffer)){
-		//printf("current file position: %lu/%lu\n",obj_pos,obj_size);
+		//OBJ_printf("current file position: %lu/%lu\n",obj_pos,obj_size);
 	}
 
 	// Free buffer
@@ -90,59 +98,63 @@ bool OBJ_parse_line(OBJ_Data* data, char* obj_buffer){
 	}
 
 	// Parse the line
-	for(int i = line_start; i <= obj_pos; i++){
-		if(isspace(obj_buffer[i])) continue;
-		if(obj_buffer[i] == '#'){
-			// If it's a comment
+	size_t i = line_start;
+	if(obj_buffer[i] == '#'){
+		// If it's a comment
+		obj_pos++;
+		return true;
+	}else if(obj_buffer[i] == 'v'){
+		if(!isspace(obj_buffer[i+1])){
 			obj_pos++;
 			return true;
-		}else if(obj_buffer[i] == 'v'){
-			if(!isspace(obj_buffer[i+1])){
-				obj_pos++;
-				return true;
-			} // In case it isn't a position vector...
-
-			// This is a vertex, so store it in the vertex vector
-			Vec3 v;
-			if(sscanf(obj_buffer+i,"v %f %f %f",&v.x,&v.y,&v.z) < 3){
-				printf("Failed to retrieve all components of vector in .obj file!\n->\"%s\"\n",&obj_buffer[i]);
-				obj_pos++;
-				obj_success = false;
-				return false;
-			}
-			printf("Retrieved vector: %f, %f, %f\n",v.x,v.y,v.z);
-			OBJ_pushback_vertex(data,v);
+		} // In case it isn't a position vector...
+		// This is a vertex, so store it in the vertex vector
+		Vec3 v;
+		if(sscanf(obj_buffer+i,"v %f %f %f",&v.x,&v.y,&v.z) < 3){
+			printf("Failed to retrieve all components of vector in .obj file!\n->\"%.*s\"\n",(int)(obj_pos-line_start),&obj_buffer[i]);
+			obj_pos++;
+			obj_success = false;
+			return false;
+		}
+		OBJ_printf("Retrieved vector: %f, %f, %f\n",v.x,v.y,v.z);
+		OBJ_pushback_vertex(data,v);
+		obj_pos++;
+		return true;
+	}else if(obj_buffer[i] == 'f'){
+		int temp;
+		// This is a face, so store it in the face vector
+		OBJ_Face f;
+		if(sscanf(obj_buffer+i,"f %d %d %d",&f.v[0],&f.v[1],&f.v[2]) == 3){
+			OBJ_printf("Retrieved face: %d, %d, %d\n",f.v[0],f.v[1],f.v[2]);
+			OBJ_pushback_face(data,f);
 			obj_pos++;
 			return true;
-		}else if(obj_buffer[i] == 'f'){
-			int temp;
-			// This is a face, so store it in the face vector
-			OBJ_Face f;
-			if(sscanf(obj_buffer+i,"f %d %d %d",&f.v[0],&f.v[1],&f.v[2]) == 3){
-				printf("Retrieved face: %d, %d, %d\n",f.v[0],f.v[1],f.v[2]);
-				OBJ_pushback_face(data,f);
-				obj_pos++;
-				return true;
-			}// Check if maybe it uses the "f a/b c/d e/f" format
-			else if(sscanf(obj_buffer+i,"f %d/%d %d/%d %d/%d",&f.v[0],&temp,&f.v[1],&temp,&f.v[2],&temp) == 6){
-				printf("Retrieved face: %d, %d, %d\n",f.v[0],f.v[1],f.v[2]);
-				OBJ_pushback_face(data,f);
-				obj_pos++;
-				return true;
-			}
-			// Check if maybe it uses the "f a/b/c d/e/f g/h/i" format
-			else if(sscanf(obj_buffer+i,"f %d/%d/%d %d/%d/%d %d/%d/%d",&f.v[0],&temp,&temp,&f.v[1],&temp,&temp,&f.v[2],&temp,&temp) == 9){
-				printf("Retrieved face: %d, %d, %d\n",f.v[0],f.v[1],f.v[2]);
-				OBJ_pushback_face(data,f);
-				obj_pos++;
-				return true;
-			}else{
-				printf("Failed to retrieve all indexes of face in .obj file!\n->\"%s\"\n",&obj_buffer[i]);
-				obj_pos++;
-				obj_success = false;
-				return false;
-			}
-			
+		}// Check if maybe it uses the "f a/b c/d e/f" format
+		else if(sscanf(obj_buffer+i,"f %d/%d %d/%d %d/%d",&f.v[0],&temp,&f.v[1],&temp,&f.v[2],&temp) == 6){
+			OBJ_printf("Retrieved face: %d, %d, %d\n",f.v[0],f.v[1],f.v[2]);
+			OBJ_pushback_face(data,f);
+			obj_pos++;
+			return true;
+		}
+		// Check if maybe it uses the "f a/b/c d/e/f g/h/i" format
+		else if(sscanf(obj_buffer+i,"f %d/%d/%d %d/%d/%d %d/%d/%d",&f.v[0],&temp,&temp,&f.v[1],&temp,&temp,&f.v[2],&temp,&temp) == 9){
+			OBJ_printf("Retrieved face: %d, %d, %d\n",f.v[0],f.v[1],f.v[2]);
+			OBJ_pushback_face(data,f);
+			obj_pos++;
+			return true;
+		}
+		// Check if maybe it uses the "f a//b c//d e//f" format
+		else if(sscanf(obj_buffer+i,"f %d//%d %d//%d %d//%d",&f.v[0],&temp,&f.v[1],&temp,&f.v[2],&temp) == 6){
+			OBJ_printf("Retrieved face: %d, %d, %d\n",f.v[0],f.v[1],f.v[2]);
+			OBJ_pushback_face(data,f);
+			obj_pos++;
+			return true;
+		}
+		else{
+			printf("Failed to retrieve all indexes of face in .obj file!\n->\"%.*s\"\n",(int)(obj_pos-line_start),&obj_buffer[i]);
+			obj_pos++;
+			obj_success = false;
+			return false;
 		}
 	}
 	obj_pos++;
@@ -168,14 +180,14 @@ Mesh OBJ_data_to_mesh(OBJ_Data* data, Color default_color){
 	Mesh m;
 	m.triangles = (Triangle*)malloc(sizeof(Triangle)*data->face_count);
 	m.triangle_count = data->face_count;
-	//printf("Triangle count: %d\n",m.triangle_count);
+	//OBJ_printf("Triangle count: %d\n",m.triangle_count);
 	m.pos = (Vec3){0.f,0.f,0.f};
 	m.rot = (Vec3){0.f,0.f,0.f};
 
 	// Now parse through all faces and add them to the mesh
 	for(int i = 0; i < data->face_count; i++){
 		Triangle tri;
-		//printf("Triangle %d:\n",i);
+		//OBJ_printf("Triangle %d:\n",i);
 		for(int j = 0; j < 3; j++){
 			// Check if the vertex doesn't exist
 			// If it doesn't exist, just throw an error and return empty mesh
@@ -183,13 +195,13 @@ Mesh OBJ_data_to_mesh(OBJ_Data* data, Color default_color){
 				free(m.triangles);
 				m.triangles = NULL;
 				m.triangle_count = 0;
-				printf("Error: Face in OBJ_Data appears to reference non-existant vertex!\n");
+				OBJ_printf("Error: Face in OBJ_Data appears to reference non-existant vertex!\n");
 				return m;
 			}
 			tri.v[j] = data->vertices[data->faces[i].v[j]-1];
 			// Give every vertex the same color (Might change that later ;) )
 			tri.c[j] = (Vec3){(float)default_color.r,(float)default_color.g,(float)default_color.b};
-			printf("%f, %f, %f\n",tri.v[j].x,tri.v[j].y,tri.v[j].z);
+			OBJ_printf("%f, %f, %f\n",tri.v[j].x,tri.v[j].y,tri.v[j].z);
 		}
 		m.triangles[i] = tri;
 	}

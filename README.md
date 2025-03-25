@@ -1,14 +1,14 @@
 # DioDogHater's multifunction rasterizer
 This is a very barebones (and probably unoptimized) attempt to make a rasterizer and 3D engine using plain C, in the terminal.
-This project's sole purpose is to be able to render 3D primitives in the terminal, giving you the hacker stereotype look.
+This project's sole purpose is to be able to render 3D shapes in the terminal, giving you the hacker stereotype look.
 Well, I guess you can just test it out for yourself and find out what you can do!
 
 # Current state
 Right now, this project only supports triangles, because other shapes would be harder to draw. Also, the mesh system
 is pretty messy and does waste unecessary ram right now. But I think for now, this project does what it needs to do,
 even if it is slow. I think the main performance issue is the fact that we have to iterate through a very very large
-number of pixels to test if they are inside a triangle. That alone is already very slow. Might consider using multi-threading,
-but that approach is very scary in C, so I dont really want to do it. I could also just turn this into a GPU-Accelerated thing
+number of pixels to test if they are inside a triangle. I used multi-threading to make it a little bit faster, but it
+still stutters and slows down sometimes. I could also just turn this into a GPU-Accelerated thing
 using OpenGl or something similar, but I just want to keep things simple, and in the terminal.
 
 # Testing and development
@@ -25,7 +25,7 @@ before including `triangleraster.h`. Note that it is mandatory to define either 
 - You can decide in "*Terminal*" rendering mode how many milliseconds to wait before rendering the next frame by defining:\
 `TRIANGLE_RASTER_SLEEPMS` to the amount of ms to wait.\
 Default is 2 ms.
-- You can decide in "*Terminal*" rendering mode wether you want to use black->white gradients or full color (only supported on certain terminals).
+- You can decide in "*Terminal*" rendering mode wether you want to use black and white gradients or full color (only supported on certain terminals).
 To enable the full color mode, define: `TRIANGLE_RASTER_FULL_COLOR`. Otherwise, the rendering will be done in black and white gradients using the
 "density" of certain ASCII characters.
 - You can choose the intensity of the ambient light and the diffuse lighting with the macros\
@@ -34,14 +34,17 @@ To enable the full color mode, define: `TRIANGLE_RASTER_FULL_COLOR`. Otherwise, 
 
 # Requirements
 You will need the `cmake` build platform and any C compiler to compile this project.\
-This project is made to be used strictly with linux, but feel free to add your own support.\
+This project is made to be used strictly with linux, but feel free to add your own support if you want to use Windows.\
 IF YOU DO NOT WANT TO USE SDL2 AT ALL, PLEASE REMOVE THE FOLLOWING LINE IN `CMakeLists.txt`:\
 `target_link_libaries(raster SDL2)`\
 If you desire to use SDL too, you will need to have the libary installed and link it properly. I use the system-wide installed
 version of SDL2, but for other installations of SDL2, you need to set it up yourself in `CMakeLists.txt`.
 
 # Using Wavefront (.obj) meshes
-If you want to use Wavefront meshes, please note that for now, materials and textures are not supported. Also, since the .obj file parser is still barebones for now, you will need to remove every line in the .obj file that does not start with either *v* or *f*. All other lines are useless and will probably make my parser fail because, like I said, it's very barebones right now. Also, please triangulate your mesh's faces before using them (transform the quads in the mesh to triangles). For now, a loaded model can only have a single color, but I might add more features later on. note that between the *v* and *f* lines, there will be a single or 3 lines with other stuff, please remove those. For further detail, save your mesh with Z+ as the forward axis, no edges, no materials and remove all unecessary elements in the scene such as cameras, lights, etc.
+If you want to use Wavefront meshes, please note that for now, materials and textures are not supported. Also, since the .obj file parser is still barebones for now, you will maybe get weird errors. In that case, you can remove all lines that don't start with 'v' or 'f'.
+Also, please triangulate your mesh's faces before using them (transform the quads in the mesh into triangles).
+For now, a loaded model can only have a single uniform color, but I might add more features later on.
+For the model to be accurate, save your mesh with Z+ as the forward axis, Y as the up axis, no edges, no materials and remove all unecessary elements in the scene such as cameras, lights, etc.
 
 # Compiling and building
 ```
