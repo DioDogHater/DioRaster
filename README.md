@@ -72,7 +72,7 @@ Golden scar? No, but golden car. Vroom vroom.\
 
 # My attempt at copying Donut C
 Cool donut spinning for real.\
-![Donut rotating in 3D using ASCII shading](https://github.com/DioDogHater/DioDogHater/blob/f845722920819ad3b338ae85dd3b26889b274f81/triangleraster_multimesh_color.gif "The Donut.")
+![Donut rotating in 3D using ASCII shading](https://github.com/DioDogHater/DioDogHater/blob/15e2a362b9d393115e25063826c47a8f35d91926/triangleraster_donut.gif "The Donut.")
 
 # Cool multi-mesh example
 Car and monkey for real.\

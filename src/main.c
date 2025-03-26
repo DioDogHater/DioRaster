@@ -14,7 +14,7 @@
 #endif
 
 // 2ms between each frame
-#define TRIANGLE_RASTER_SLEEPMS 2
+#define TRIANGLE_RASTER_SLEEPMS 0
 
 // Experimental
 //#define TRIANGLE_RASTER_MULTITHREADING
