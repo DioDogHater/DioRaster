@@ -175,12 +175,12 @@ void OBJ_free_data(OBJ_Data* data){
 
 Mesh OBJ_data_to_mesh(OBJ_Data* data, Color default_color){
 	if(data->face_count < 1 && data->vertex_count < 1) // If the model is "empty"
-		return (Mesh){NULL,0,(Vec3){0.f,0.f,0.f},(Vec3){0.f,0.f,0.f}};
+		return (Mesh){NULL,NULL,0,(Vec3){0.f,0.f,0.f},(Vec3){0.f,0.f,0.f}};
 	// Allocate resources necessary to load model and initialize pos and rot
 	Mesh m;
 	m.triangles = (Triangle*)malloc(sizeof(Triangle)*data->face_count);
 	m.triangle_count = data->face_count;
-	//OBJ_printf("Triangle count: %d\n",m.triangle_count);
+	m.normals = (Vec3*)malloc(sizeof(Vec3)*data->face_count);
 	m.pos = (Vec3){0.f,0.f,0.f};
 	m.rot = (Vec3){0.f,0.f,0.f};
 
@@ -204,6 +204,7 @@ Mesh OBJ_data_to_mesh(OBJ_Data* data, Color default_color){
 			OBJ_printf("%f, %f, %f\n",tri.v[j].x,tri.v[j].y,tri.v[j].z);
 		}
 		m.triangles[i] = tri;
+		m.normals[i] = normalize(get_normal(tri.v[0],tri.v[1],tri.v[2]));
 	}
 	return m;
 }
@@ -211,6 +212,8 @@ Mesh OBJ_data_to_mesh(OBJ_Data* data, Color default_color){
 void OBJ_free_mesh(Mesh* m){
 	if(m->triangles != NULL) free(m->triangles);
 	m->triangles = NULL;
+	if(m->normals != NULL) free(m->normals);
+	m->normals = NULL;
 	m->triangle_count = 0;
 }
 

@@ -13,11 +13,25 @@
 #define SH 62
 #endif
 
-// Rendering parameters
-#define TRIANGLE_RASTER_SLEEPMS 0
+// 2ms between each frame
+#define TRIANGLE_RASTER_SLEEPMS 2
+
+// Experimental
+//#define TRIANGLE_RASTER_MULTITHREADING
+
+// Remove for grayscale
 #define TRIANGLE_RASTER_FULL_COLOR
-#define TRIANGLE_RASTER_AMBIENT 0.5f
-#define TRIANGLE_RASTER_DIFFUSE 0.5f
+
+#ifdef TRIANGLE_RASTER_FULL_COLOR
+// Best settings for color
+#define TRIANGLE_RASTER_AMBIENT 0.35f
+#define TRIANGLE_RASTER_DIFFUSE 0.65f
+#else
+// Best settings for grayscale
+#define TRIANGLE_RASTER_AMBIENT 0.025f
+#define TRIANGLE_RASTER_DIFFUSE 0.9f
+#endif
+
 
 // The triange rasterization library
 #include "triangleraster.h"
@@ -41,10 +55,10 @@ Mesh load_mesh(char* path, Color c){
 int main(int argc, char* argv[]){
 	// Load the car mesh
 	Mesh car_mesh = load_mesh("car.obj",(Color){255,125,50});
-	car_mesh.pos = (Vec3){-1.f,0.f,6.25f};
+	car_mesh.pos = (Vec3){-0.5f,0.f,5.f};
 	// Load the suzanne mesh
 	Mesh suzanne_mesh = load_mesh("suzanne.obj",(Color){255,255,255});
-	suzanne_mesh.pos = (Vec3){1.f,0.f,4.25f};
+	suzanne_mesh.pos = (Vec3){0.5f,0.f,3.f};
 
 	// Initialize the rasterization libary
 	if(!init()) return 1;
@@ -68,6 +82,7 @@ int main(int argc, char* argv[]){
 		// Rotate the suzanne mesh
 		suzanne_mesh.rot.x += 0.03f;
 		suzanne_mesh.rot.z += 0.02f;
+		suzanne_mesh.pos.y = 0.5f*sin(frames);
 
 		// Update the screen
 		update_screen();

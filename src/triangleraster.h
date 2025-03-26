@@ -209,6 +209,7 @@ void set_pixel(Color color, int x, int y){
 // Custom made math library to fit this rasterizer's needs
 #include "trianglemath.h"
 
+#ifdef TRIANGLE_RASTER_MULTITHREADING
 // Bounds allocated to be passed as argument in threads
 struct TriangleBounds* thread_bounds=NULL;
 Triangle* global_render_triangles;
@@ -310,15 +311,68 @@ void render_triangles(Triangle* triangle_array, int triangle_count){
 	pthread_create(&lower_right,NULL,&thread_render_area,(void*)&thread_bounds[3]);
 
 	// Wait for all threads to end
-	pthread_join(upper_left,NULL);
-	pthread_join(upper_right,NULL);
-	pthread_join(lower_left,NULL);
 	pthread_join(lower_right,NULL);
+	pthread_join(lower_left,NULL);
+	pthread_join(upper_right,NULL);
+	pthread_join(upper_left,NULL);
 
 	// Free resources
 	free(global_render_triangles);
 	free(global_render_bounds);
 }
+#else
+// Render triangles
+void render_triangles(Triangle* triangle_array, int triangle_count){
+	// Copy of triangles given to transform for projection
+	Triangle* triangles = (Triangle*) malloc(sizeof(Triangle)*triangle_count);
+	// Get bounds and store them
+	struct TriangleBounds* bounds = (struct TriangleBounds*) malloc(sizeof(struct TriangleBounds)*triangle_count);
+	struct TriangleBounds global_bounds;
+	for(int i = 0; i < triangle_count; i++) {
+		triangles[i] = project_triangle(triangle_array[i]);
+		bounds[i] = get_triangle_bounds(triangles[i]);
+		if(i == 0) { global_bounds = bounds[i]; continue; }
+		global_bounds.xmin = min(global_bounds.xmin,bounds[i].xmin);
+		global_bounds.xmax = max(global_bounds.xmax,bounds[i].xmax);
+		global_bounds.ymin = min(global_bounds.ymin,bounds[i].ymin);
+		global_bounds.ymax = max(global_bounds.ymax,bounds[i].ymax);
+	}
+	
+	// Loop through all triangles' bounds and check for each pixel
+	for(int y = global_bounds.ymin; y < global_bounds.ymax; y++){
+		for(int x = global_bounds.xmin; x < global_bounds.xmax; x++){
+			// Current pixel's color
+			Color fragment_color = (Color){0,0,0};
+			// Depth of the closest triangle
+			float closest_depth = depth_buffer[y][x];
+			for(int i = 0; i < triangle_count; i++){
+				// Current triangle
+				Triangle tri = triangles[i];
+				// Check if in bounds of the current triangle
+				if(x < bounds[i].xmin || x > bounds[i].xmax || y < bounds[i].ymin || y > bounds[i].ymax) continue;
+				// Check if pixel is inside triangle
+				Vec3 p = barycentric(tri.v[0],tri.v[1],tri.v[2],px_to_screen_space(x,y));
+				// If yes, fill the pixel with the interpolated color
+				if(p.x != -1.f){
+					float depth = interpolate_depth(tri.v[0],tri.v[1],tri.v[2],p);
+					// If another triangle is closer, dont render atop
+					if(depth < closest_depth && depth > 0.1f){
+						fragment_color = interpolate_colors(tri.c[0],tri.c[1],tri.c[2],p);
+						closest_depth = depth; // Update the closest triangle
+					}
+				}
+			}
+			// If the fragment's color isnt black, render the pixel
+			if(fragment_color.r != 0 || fragment_color.g != 0 || fragment_color.b != 0)
+				set_pixel(fragment_color,x,y);
+			depth_buffer[y][x] = closest_depth;
+		}
+	}
+	// Free resources
+	free(triangles);
+	free(bounds);
+}
+#endif
 
 // Transform triangles and render mesh
 void render_mesh(Mesh m){
@@ -337,7 +391,7 @@ void render_mesh_shaded(Mesh m, Vec3 light){
 	Triangle* triangles = (Triangle*) malloc(sizeof(Triangle)*m.triangle_count);
 	for(int i = 0; i < m.triangle_count; i++){
 		triangles[i] = transform_triangle(m.triangles[i],m.pos,m.rot);
-		shade_triangle(&triangles[i],light);
+		shade_triangle(&triangles[i],rotateZYX(m.normals[i],m.rot),light);
 	}
 	render_triangles(triangles,m.triangle_count);
 	free(triangles);

@@ -8,8 +8,9 @@ Right now, this project only supports triangles, because other shapes would be h
 is pretty messy and does waste unecessary ram right now. But I think for now, this project does what it needs to do,
 even if it is slow. I think the main performance issue is the fact that we have to iterate through a very very large
 number of pixels to test if they are inside a triangle. I used multi-threading to make it a little bit faster, but it
-still stutters and slows down sometimes. I could also just turn this into a GPU-Accelerated thing
-using OpenGl or something similar, but I just want to keep things simple, and in the terminal.
+still stutters and slows down sometimes. Honestly, I think it actually worsens the speed of my renderer.
+I could also just turn this into a GPU-Accelerated thing using OpenGl or something similar, but I just want to keep
+things simple, and in the terminal.
 
 # Testing and development
 I've documented this project *decently* so please read the comments. Most of the functions are straightforward, and self-descriptive.

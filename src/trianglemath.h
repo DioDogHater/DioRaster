@@ -19,6 +19,7 @@ typedef struct {
 
 typedef struct {
 	Triangle* triangles;
+	Vec3* normals;
 	int triangle_count;
 	Vec3 pos;
 	Vec3 rot;
@@ -163,8 +164,8 @@ Triangle project_triangle(Triangle t){
 #define TRIANGLE_RASTER_DIFFUSE 0.75f
 #endif
 
-void shade_triangle(Triangle* t, Vec3 light){
-	Vec3 norm = normalize(get_normal(t->v[0],t->v[1],t->v[2]));
+void shade_triangle(Triangle* t, Vec3 normal, Vec3 light){
+	Vec3 norm = normal;
 	for(int i=0; i<3; i++){
 		Vec3 lightDir = normalize(sub_Vec3(light,t->v[i]));
 		float diff = max(dot_product(norm,lightDir),0.f);
