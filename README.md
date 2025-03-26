@@ -70,6 +70,15 @@ Now this is the coolest thing I've been able to do so far!\
 Golden scar? No, but golden car. Vroom vroom.\
 ![A car rotating in 3D, rendered using hashtags in a gold color](https://github.com/DioDogHater/DioDogHater/blob/eb32255b533146afe500c420d3f5e5576db2fa4a/triangleraster_car.gif "The Golden Car.")
 
+# My attempt at copying Donut C
+Cool donut spinning for real.\
+![Donut rotating in 3D using ASCII shading](https://github.com/DioDogHater/DioDogHater/blob/f845722920819ad3b338ae85dd3b26889b274f81/triangleraster_multimesh_color.gif "The Donut.")
+
+# Cool multi-mesh example
+Car and monkey for real.\
+![Car and monkey (suzanne) spinning in 3D, in grayscale](https://github.com/DioDogHater/DioDogHater/blob/f845722920819ad3b338ae85dd3b26889b274f81/triangleraster_multmesh_grayscale.gif "The Multimesh Example.")\
+![Car and monkey (suzanne) spinning in 3D, in color](https://github.com/DioDogHater/DioDogHater/blob/f845722920819ad3b338ae85dd3b26889b274f81/triangleraster_multimesh_color.gif "The Multimesh Example.")
+
 # Credits
 Please credit me if you use this thing, if you want (I dont really give a shit), even though I'm pretty sure nobody will actually stumble upon this.\
 \
