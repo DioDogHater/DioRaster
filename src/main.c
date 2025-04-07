@@ -13,7 +13,8 @@
 #define SH 62
 #endif
 
-// 2ms between each frame
+// 0ms awaited between each frame
+// If the framerate is too high, please change this value
 #define TRIANGLE_RASTER_SLEEPMS 0
 
 // Experimental
@@ -31,7 +32,6 @@
 #define TRIANGLE_RASTER_AMBIENT 0.025f
 #define TRIANGLE_RASTER_DIFFUSE 0.9f
 #endif
-
 
 // The triange rasterization library
 #include "triangleraster.h"
