@@ -7,30 +7,30 @@
 #define TRIANGLE_RASTER_TERMINAL
 #define TRIANGLE_RASTER_CW
 
-// Window dimensions
+// Uncomment to enable SDL
+//#define TRIANGLE_RASTER_SDL
+
+// Window dimensions (if SDL is turned off)
 #ifndef TRIANGLE_RASTER_SDL
 #define SW 125
 #define SH 62
 #endif
 
-// 0ms awaited between each frame
-// If the framerate is too high, please change this value
-#define TRIANGLE_RASTER_SLEEPMS 0
-
 // Experimental
 //#define TRIANGLE_RASTER_MULTITHREADING
 
-// Remove for grayscale
+// Comment for grayscale
 #define TRIANGLE_RASTER_FULL_COLOR
 
-#ifdef TRIANGLE_RASTER_FULL_COLOR
-// Best settings for color
-#define TRIANGLE_RASTER_AMBIENT 0.35f
-#define TRIANGLE_RASTER_DIFFUSE 0.65f
-#else
 // Best settings for grayscale
-#define TRIANGLE_RASTER_AMBIENT 0.025f
-#define TRIANGLE_RASTER_DIFFUSE 0.9f
+#ifndef TRIANGLE_RASTER_FULL_COLOR
+#define TRIANGLE_RASTER_AMBIENT 0.1f
+#define TRIANGLE_RASTER_DIFFUSE 0.85f
+
+// Best settings for Full Color mode
+#else
+#define TRIANGLE_RASTER_AMBIENT 0.3f
+#define TRIANGLE_RASTER_DIFFUSE 0.7f
 #endif
 
 // The triange rasterization library
@@ -87,6 +87,9 @@ int main(int argc, char* argv[]){
 		// Update the screen
 		update_screen();
 		frames += 0.01f;
+		
+		// Wait 2ms between each frame (uncomment if the FPS are too high)
+		//sleepms(2);
 	}
 
 	// Free the mesh we loaded at the start

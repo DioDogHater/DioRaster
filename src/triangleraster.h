@@ -6,7 +6,11 @@
 #include <stdint.h>
 #include <string.h>
 #include <math.h>
+
+// Only include when multithreading is enabled
+#ifdef TRIANGLE_RASTER_MULTITHREADING
 #include <pthread.h>
+#endif
 
 // Boolean values
 #define bool _Bool
@@ -162,10 +166,6 @@ void clear_screen(){
 // Just do nothing (no events to poll or handle)
 void handle_events(){}
 
-#ifndef TRIANGLE_RASTER_SLEEPMS
-#define TRIANGLE_RASTER_SLEEPMS 2
-#endif
-
 // Update the screen
 void update_screen(){
 	for(int i = 0; i < SH; i++){
@@ -187,7 +187,6 @@ void update_screen(){
 	#if defined(TRIANGLE_RASTER_FULL_COLOR)
 	printf("\033[0m");
 	#endif
-	sleepms(TRIANGLE_RASTER_SLEEPMS);
 }
 
 // Set pixel to specified color

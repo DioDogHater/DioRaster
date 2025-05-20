@@ -23,9 +23,6 @@ before including `triangleraster.h`.
 - You can decide wether triangles are rendered when they are winded in counter-clockwise or clockwise order defining either:\
 `TRIANGLE_RASTER_CCW` or `TRIANGLE_RASTER_CW`\
 before including `triangleraster.h`. Note that it is mandatory to define either one before including the header.
-- You can decide in "*Terminal*" rendering mode how many milliseconds to wait before rendering the next frame by defining:\
-`TRIANGLE_RASTER_SLEEPMS` to the amount of ms to wait.\
-Default is 2 ms.
 - You can decide in "*Terminal*" rendering mode wether you want to use black and white gradients or full color (only supported on certain terminals).
 To enable the full color mode, define: `TRIANGLE_RASTER_FULL_COLOR`. Otherwise, the rendering will be done in black and white gradients using the
 "density" of certain ASCII characters.
