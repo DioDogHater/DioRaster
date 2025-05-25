@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(triangle_raster)
+project(dio_raster)
 
 set(CMAKE_C_STANDARD 17)
 
