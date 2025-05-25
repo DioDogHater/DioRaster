@@ -1,6 +1,5 @@
-
-#ifndef TRIANGLE_MATH_H
-#define TRIANGLE_MATH_H
+#ifndef DIO_RASTER_MATH_H
+#define DIO_RASTER_MATH_H
 
 // Custom min and max macros
 #define min(a,b) ((a)<(b)?(a):(b))
@@ -15,15 +14,15 @@ typedef struct {
 typedef struct {
 	Vec3 v[3];
 	Vec3 c[3];
-} Triangle;
+} DR_Triangle;
 
 typedef struct {
-	Triangle* triangles;
+	DR_Triangle* triangles;
 	Vec3* normals;
 	int triangle_count;
 	Vec3 pos;
 	Vec3 rot;
-} Mesh;
+} DR_Mesh;
 
 // Structure used in rendering step
 struct TriangleBounds {
@@ -49,7 +48,7 @@ float dot_product(Vec3 a, Vec3 b){
 	return a.x*b.x + a.y*b.y + a.z*b.z;
 }
 
-#if defined(TRIANGLE_RASTER_FAST_INVSQRT)
+#if defined(DIO_RASTER_FAST_INVSQRT)
 // Fast inverse square root from Quake
 float fast_invsqrt(float number){
 	long i;
@@ -100,7 +99,7 @@ Vec3 get_normal(Vec3 a, Vec3 b, Vec3 c){
 // ---------------- RENDERING UTILITY --------------------------------
 
 // Get the TriangleBounds of the triangle
-struct TriangleBounds get_triangle_bounds(Triangle t){
+struct TriangleBounds get_triangle_bounds(DR_Triangle t){
 	struct TriangleBounds bounds = (struct TriangleBounds){
 		(int)max((min(t.v[0].x,min(t.v[1].x,t.v[2].x))+0.5f)*(float)SW,0),
 		(int)min((max(t.v[0].x,max(t.v[1].x,t.v[2].x))+0.5f)*(float)SW,SW),
@@ -140,7 +139,7 @@ Vec3 rotateZYX(Vec3 v, Vec3 rot){
 }
 
 // Transform vertex with translation and rotation
-Triangle transform_triangle(Triangle t, Vec3 pos, Vec3 rot){
+DR_Triangle DR_transform_triangle(DR_Triangle t, Vec3 pos, Vec3 rot){
 	for(int i = 0; i < 3; i++){
 		t.v[i] = rotateZYX(t.v[i],rot);
 		t.v[i] = add_Vec3(t.v[i],pos);
@@ -148,7 +147,7 @@ Triangle transform_triangle(Triangle t, Vec3 pos, Vec3 rot){
 	return t;
 }
 
-Triangle project_triangle(Triangle t){
+DR_Triangle project_triangle(DR_Triangle t){
 	for(int i = 0; i < 3; i++){
 		t.v[i] = (Vec3){
 			t.v[i].x/t.v[i].z, t.v[i].y/t.v[i].z, t.v[i].z
@@ -157,19 +156,19 @@ Triangle project_triangle(Triangle t){
 	return t;
 }
 
-#ifndef TRIANGLE_RASTER_AMBIENT
-#define TRIANGLE_RASTER_AMBIENT 0.25f
+#ifndef DIO_RASTER_AMBIENT
+#define DIO_RASTER_AMBIENT 0.25f
 #endif
-#ifndef TRIANGLE_RASTER_DIFFUSE
-#define TRIANGLE_RASTER_DIFFUSE 0.75f
+#ifndef DIO_RASTER_DIFFUSE
+#define DIO_RASTER_DIFFUSE 0.75f
 #endif
 
-void shade_triangle(Triangle* t, Vec3 normal, Vec3 light){
+void DR_shade_triangle(DR_Triangle* t, Vec3 normal, Vec3 light){
 	Vec3 norm = normal;
 	for(int i=0; i<3; i++){
 		Vec3 lightDir = normalize(sub_Vec3(light,t->v[i]));
 		float diff = max(dot_product(norm,lightDir),0.f);
-		float intensity = (TRIANGLE_RASTER_AMBIENT+diff*TRIANGLE_RASTER_DIFFUSE);
+		float intensity = (DIO_RASTER_AMBIENT+diff*DIO_RASTER_DIFFUSE);
 		Vec3 diffuse = (Vec3){intensity*t->c[i].x,intensity*t->c[i].y,intensity*t->c[i].z};
 		t->c[i] = diffuse;
 	}
@@ -186,12 +185,12 @@ float edge_function(Vec3 a, Vec3 b, Vec3 p){
 // NOW THIS IS IMPORTANT! AT THIS STAGE, VERTEX WINDING ORDER IS IMPORTANT
 // Please use define TRIANGLE_RASTER_CCW to use counter-clockwise
 // Please use define TRIANGLE_RASTER_CW to use clockwise
-#if defined(TRIANGLE_RASTER_CCW)
+#if defined(DIO_RASTER_CCW)
 #define RASTER_ORDER_CMP <=
-#elif defined(TRIANGLE_RASTER_CW)
+#elif defined(DIO_RASTER_CW)
 #define RASTER_ORDER_CMP >=
 #else
-#error "Please either define TRIANGLE_RASTER_CW or TRIANGLE_RASTER_CCW before including triangleraster.h"
+#error "Please either define DIO_RASTER_CW or DIO_RASTER_CCW before including dioraster.h"
 #endif
 
 // Will give you the barycentric coordinates if point P is inside the triangle
@@ -217,8 +216,8 @@ float interpolate_depth(Vec3 a, Vec3 b, Vec3 c, Vec3 p){
 }
 
 // Interpolate colors
-Color interpolate_colors(Vec3 a, Vec3 b, Vec3 c, Vec3 p){
-	return (Color){
+DR_Color interpolate_colors(Vec3 a, Vec3 b, Vec3 c, Vec3 p){
+	return (DR_Color){
 		(int)((a.x*p.x) + (b.x*p.y) + (c.x*p.z)),
 		(int)((a.y*p.x) + (b.y*p.y) + (c.y*p.z)),
 		(int)((a.z*p.x) + (b.z*p.y) + (c.z*p.z))

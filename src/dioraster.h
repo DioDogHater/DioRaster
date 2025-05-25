@@ -1,5 +1,5 @@
-#ifndef TRIANGLE_RASTER_H
-#define TRIANGLE_RASTER_H
+#ifndef DIO_RASTER_H
+#define DIO_RASTER_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,7 +8,7 @@
 #include <math.h>
 
 // Only include when multithreading is enabled
-#ifdef TRIANGLE_RASTER_MULTITHREADING
+#ifdef DIO_RASTER_MULTITHREADING
 #include <pthread.h>
 #endif
 
@@ -19,19 +19,19 @@
 
 typedef struct {
 	uint8_t r,g,b;
-} Color;
+} DR_Color;
 
 // Functions
-bool init();
-void quit_everything();
-void handle_events();
-void clear_screen();
-void update_screen();
-void set_pixel(Color color, int x, int y);
+bool DR_init(void);
+void DR_quit_everything(void);
+void DR_handle_events(void);
+void DR_clear_screen(void);
+void DR_update_screen(void);
+void set_pixel(DR_Color color, int x, int y);
 
 // ------------------
 
-#if defined(TRIANGLE_RASTER_SDL)
+#if defined(DIO_RASTER_SDL)
 // Will render the triangles with SDL2
 #include <SDL2/SDL.h>
 
@@ -44,15 +44,15 @@ void set_pixel(Color color, int x, int y);
 #endif
 
 // Create the depth buffer
-float depth_buffer[SH][SW];
+static float depth_buffer[SH][SW];
 
 // Window and renderer
-SDL_Window* win = NULL;
-SDL_Renderer* rend = NULL;
-SDL_Event event;
+static SDL_Window* win = NULL;
+static SDL_Renderer* rend = NULL;
+static SDL_Event event;
 
 // Initialize SDL2
-bool init(){
+bool DR_init(){
 	if(SDL_Init(SDL_INIT_EVERYTHING) < 0){
 		printf("SDL_Init error: %s\n",SDL_GetError());
 		return false;
@@ -71,7 +71,7 @@ bool init(){
 }
 
 // Quits libraries
-void quit_everything(){
+void DR_quit_everything(){
 	SDL_DestroyRenderer(rend);
 	SDL_DestroyWindow(win);
 	SDL_Quit();
@@ -79,7 +79,7 @@ void quit_everything(){
 }
 
 // Clear the screen
-void clear_screen(){
+void DR_clear_screen(){
 	SDL_SetRenderDrawColor(rend,0,0,0,255);
 	SDL_RenderClear(rend);
 	for(int i = 0; i < SH; i++){
@@ -89,20 +89,20 @@ void clear_screen(){
 }
 
 // Handle events in case user presses X
-void handle_events(){
+void DR_handle_events(){
 	while(SDL_PollEvent(&event) != 0){
 		if(event.type == SDL_QUIT)
-			quit_everything();
+			DR_quit_everything();
 	}
 }
 
 // Update the screen
-void update_screen(){
+void DR_update_screen(){
 	SDL_RenderPresent(rend);
 }
 
 // Set a pixel to a specific color
-void set_pixel(Color color, int x, int y){
+void set_pixel(DR_Color color, int x, int y){
 	SDL_SetRenderDrawColor(rend,color.r,color.g,color.b,255);
 	SDL_RenderDrawPoint(rend,x,y);
 }
@@ -110,7 +110,7 @@ void set_pixel(Color color, int x, int y){
 
 // ------------------
 
-#elif defined(TRIANGLE_RASTER_TERMINAL)
+#elif defined(DIO_RASTER_TERMINAL)
 // Will render the triangles on the terminal using ASCII characters
 
 // Sleeping to wait for next frame
@@ -126,52 +126,52 @@ void set_pixel(Color color, int x, int y){
 #endif
 
 // Screen buffer for characters to be rendered to the screen
-Color color_buffer[SH][SW];
+static DR_Color color_buffer[SH][SW];
 
 // Create the depth buffer
-float depth_buffer[SH][SW];
+static float depth_buffer[SH][SW];
 
-#ifndef TRIANGLE_RASTER_FULL_COLOR
+#ifndef DIO_RASTER_FULL_COLOR
 const char grayscale[] = "`.-':_,^=;><+!rc*/z?sLTv)J7(|Fi{C}fI31tlu[neoZ5Yxjya]2ESwqkP6h9d4VpOGbUAKXHm8RD#$Bg0MNWQ%&@";
 float grayscale_len = 0.f;
 #endif
 
 // Initialize the screen buffer
-bool init(){
-	#ifndef TRIANGLE_RASTER_FULL_COLOR
+bool DR_init(){
+	#ifndef DIO_RASTER_FULL_COLOR
 	grayscale_len = (float)strlen(grayscale);
 	#endif
 	return true;
 }
 
 // Just exit the program
-void quit_everything(){
+void DR_quit_everything(){
 	exit(0);
 }
 
 // Clear the screen
-void clear_color_buffer(){
+static void clear_color_buffer(){
 	for(int i = 0; i < SH; i++){
 		for(int j = 0; j < SW; j++){
-			color_buffer[i][j] = (Color){0,0,0};
+			color_buffer[i][j] = (DR_Color){0,0,0};
 			depth_buffer[i][j] = 100.f;
 		}
 	}
 }
-void clear_screen(){
+void DR_clear_screen(){
 	clear_color_buffer();
 	printf("\e[2J\e[H");
 }
 
 // Just do nothing (no events to poll or handle)
-void handle_events(){}
+void DR_handle_events(){}
 
 // Update the screen
-void update_screen(){
+void DR_update_screen(){
 	for(int i = 0; i < SH; i++){
 		for(int j = 0; j < SW; j++){
 			if(color_buffer[i][j].r != 0 || color_buffer[i][j].g != 0 || color_buffer[i][j].b != 0){
-				#if defined(TRIANGLE_RASTER_FULL_COLOR)
+				#if defined(DIO_RASTER_FULL_COLOR)
 				printf("\033[38;2;%d;%d;%dm#",color_buffer[i][j].r,color_buffer[i][j].g,color_buffer[i][j].b);
 				#else
 				float brightness = (float)color_buffer[i][j].r*0.299f+(float)color_buffer[i][j].g*0.587f+(float)color_buffer[i][j].b*0.114f;
@@ -184,13 +184,13 @@ void update_screen(){
 		}
 		putchar('\n');
 	}
-	#if defined(TRIANGLE_RASTER_FULL_COLOR)
+	#if defined(DIO_RASTER_FULL_COLOR)
 	printf("\033[0m");
 	#endif
 }
 
 // Set pixel to specified color
-void set_pixel(Color color, int x, int y){
+void set_pixel(DR_Color color, int x, int y){
 	if(x < 0 || x >= SW || y < 0 || y >= SH)
 		return;
 	color_buffer[y][x] = color;
@@ -200,22 +200,22 @@ void set_pixel(Color color, int x, int y){
 // ---------------------------
 
 #else
-#error "Please define TRIANGLE_RASTER_SDL or TRIANGLE_RASTER_TERMINAL to chose what rendering interface to use."
+#error "Please define DIO_RASTER_SDL or DIO_RASTER_TERMINAL to chose what rendering interface to use."
 #endif
 
 // ---------------------------
 
 // Custom made math library to fit this rasterizer's needs
-#include "trianglemath.h"
+#include "diorastermath.h"
 
-#ifdef TRIANGLE_RASTER_MULTITHREADING
+#ifdef DIO_RASTER_MULTITHREADING
 // Bounds allocated to be passed as argument in threads
-struct TriangleBounds* thread_bounds=NULL;
-Triangle* global_render_triangles;
-struct TriangleBounds* global_render_bounds=NULL;
-int global_render_triangle_count;
+static struct TriangleBounds* thread_bounds=NULL;
+static Triangle* global_render_triangles;
+static struct TriangleBounds* global_render_bounds=NULL;
+static int global_render_triangle_count;
 
-void* thread_render_area(void* vargs){
+static void* thread_render_area(void* vargs){
 	//pthread_detach(pthread_self());
 
 	// Get the bounds passed as the argument
@@ -258,12 +258,12 @@ void* thread_render_area(void* vargs){
 }
 
 // Render triangles
-void render_triangles(Triangle* triangle_array, int triangle_count){
+void DR_render_triangles(DR_Triangle* triangle_array, int triangle_count){
 	// Set the global variable holding the triangle count
 	global_render_triangle_count = triangle_count;
 	
 	// Copy of triangles given to transform for projection
-	global_render_triangles = (Triangle*) malloc(sizeof(Triangle)*triangle_count);
+	global_render_triangles = (DR_Triangle*) malloc(sizeof(DR_Triangle)*triangle_count);
 	
 	// Get bounds and store them
 	global_render_bounds = (struct TriangleBounds*) malloc(sizeof(struct TriangleBounds)*triangle_count);
@@ -321,9 +321,9 @@ void render_triangles(Triangle* triangle_array, int triangle_count){
 }
 #else
 // Render triangles
-void render_triangles(Triangle* triangle_array, int triangle_count){
+void DR_render_triangles(DR_Triangle* triangle_array, int triangle_count){
 	// Copy of triangles given to transform for projection
-	Triangle* triangles = (Triangle*) malloc(sizeof(Triangle)*triangle_count);
+	DR_Triangle* triangles = (DR_Triangle*) malloc(sizeof(DR_Triangle)*triangle_count);
 	// Get bounds and store them
 	struct TriangleBounds* bounds = (struct TriangleBounds*) malloc(sizeof(struct TriangleBounds)*triangle_count);
 	struct TriangleBounds global_bounds;
@@ -341,12 +341,12 @@ void render_triangles(Triangle* triangle_array, int triangle_count){
 	for(int y = global_bounds.ymin; y < global_bounds.ymax; y++){
 		for(int x = global_bounds.xmin; x < global_bounds.xmax; x++){
 			// Current pixel's color
-			Color fragment_color = (Color){0,0,0};
+			DR_Color fragment_color = (DR_Color){0,0,0};
 			// Depth of the closest triangle
 			float closest_depth = depth_buffer[y][x];
 			for(int i = 0; i < triangle_count; i++){
 				// Current triangle
-				Triangle tri = triangles[i];
+				DR_Triangle tri = triangles[i];
 				// Check if in bounds of the current triangle
 				if(x < bounds[i].xmin || x > bounds[i].xmax || y < bounds[i].ymin || y > bounds[i].ymax) continue;
 				// Check if pixel is inside triangle
@@ -374,25 +374,28 @@ void render_triangles(Triangle* triangle_array, int triangle_count){
 #endif
 
 // Transform triangles and render mesh
-void render_mesh(Mesh m){
+void DR_render_mesh(DR_Mesh m){
 	if(m.triangle_count == 0) return;
-	Triangle* triangles = (Triangle*) malloc(sizeof(Triangle)*m.triangle_count);
+	DR_Triangle* triangles = (DR_Triangle*) malloc(sizeof(DR_Triangle)*m.triangle_count);
 	for(int i = 0; i < m.triangle_count; i++){
-		triangles[i] = transform_triangle(m.triangles[i],m.pos,m.rot);
+		triangles[i] = DR_transform_triangle(m.triangles[i],m.pos,m.rot);
 	}
-	render_triangles(triangles,m.triangle_count);
+	DR_render_triangles(triangles,m.triangle_count);
 	free(triangles);
 }
 
+// Global variable for light source
+Vec3 DR_light = {0,0,0};
+
 // Transform triangles and render mesh with shading
-void render_mesh_shaded(Mesh m, Vec3 light){
+void DR_render_mesh_shaded(DR_Mesh m){
 	if(m.triangle_count == 0) return;
-	Triangle* triangles = (Triangle*) malloc(sizeof(Triangle)*m.triangle_count);
+	DR_Triangle* triangles = (DR_Triangle*) malloc(sizeof(DR_Triangle)*m.triangle_count);
 	for(int i = 0; i < m.triangle_count; i++){
-		triangles[i] = transform_triangle(m.triangles[i],m.pos,m.rot);
-		shade_triangle(&triangles[i],rotateZYX(m.normals[i],m.rot),light);
+		triangles[i] = DR_transform_triangle(m.triangles[i],m.pos,m.rot);
+		DR_shade_triangle(&triangles[i],rotateZYX(m.normals[i],m.rot),DR_light);
 	}
-	render_triangles(triangles,m.triangle_count);
+	DR_render_triangles(triangles,m.triangle_count);
 	free(triangles);
 }
 

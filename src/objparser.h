@@ -173,12 +173,12 @@ void OBJ_free_data(OBJ_Data* data){
 
 // ---------------- TRANSFORM OBJ_DATA INTO MESH -----------------------
 
-Mesh OBJ_data_to_mesh(OBJ_Data* data, Color default_color){
+DR_Mesh OBJ_data_to_mesh(OBJ_Data* data, DR_Color default_color){
 	if(data->face_count < 1 && data->vertex_count < 1) // If the model is "empty"
-		return (Mesh){NULL,NULL,0,(Vec3){0.f,0.f,0.f},(Vec3){0.f,0.f,0.f}};
+		return (DR_Mesh){NULL,NULL,0,(Vec3){0.f,0.f,0.f},(Vec3){0.f,0.f,0.f}};
 	// Allocate resources necessary to load model and initialize pos and rot
-	Mesh m;
-	m.triangles = (Triangle*)malloc(sizeof(Triangle)*data->face_count);
+	DR_Mesh m;
+	m.triangles = (DR_Triangle*)malloc(sizeof(DR_Triangle)*data->face_count);
 	m.triangle_count = data->face_count;
 	m.normals = (Vec3*)malloc(sizeof(Vec3)*data->face_count);
 	m.pos = (Vec3){0.f,0.f,0.f};
@@ -186,7 +186,7 @@ Mesh OBJ_data_to_mesh(OBJ_Data* data, Color default_color){
 
 	// Now parse through all faces and add them to the mesh
 	for(int i = 0; i < data->face_count; i++){
-		Triangle tri;
+		DR_Triangle tri;
 		//OBJ_printf("Triangle %d:\n",i);
 		for(int j = 0; j < 3; j++){
 			// Check if the vertex doesn't exist
@@ -209,7 +209,7 @@ Mesh OBJ_data_to_mesh(OBJ_Data* data, Color default_color){
 	return m;
 }
 
-void OBJ_free_mesh(Mesh* m){
+void OBJ_free_mesh(DR_Mesh* m){
 	if(m->triangles != NULL) free(m->triangles);
 	m->triangles = NULL;
 	if(m->normals != NULL) free(m->normals);
