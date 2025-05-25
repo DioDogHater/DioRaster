@@ -46,8 +46,8 @@ For the model to be accurate, save your mesh with Z+ as the forward axis, Y as t
 
 # Compiling and building
 ```
-git clone https://github.com/DioDogHater/TriangleRaster
-cd TriangleRaster
+git clone https://github.com/DioDogHater/DioRaster
+cd DioRaster
 mkdir build
 cmake -S . -B ./build
 cmake --build ./build
